@@ -1,3 +1,3 @@
 # our-stuff
-
-read
+Joseph Paul Bernstein
+Brandon Jose Mendez
