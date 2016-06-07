@@ -1,0 +1,54 @@
+from Tkinter import Tk
+from tkFileDialog import askopenfilename
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use("tkAgg")
+import matplotlib.pyplot as plt
+import scipy.fftpack
+from scipy import signal
+
+
+Tk().withdraw()
+filename = 'training_mood.csv'#askopenfilename()
+Ltime = 13.6
+Utime = 14
+fields =['period', 'time','HR']
+df = pd.read_csv(filename, usecols=fields)
+#ddf = df.dropna()
+ddf = df
+print ddf
+#plt.show( ddf.plot(kind = 'scatter', x = 'time' , y = 'HR', c = 'c'))
+ddf = ddf[ddf.period == '10/4/2014']
+ddf = ddf.drop_duplicates()
+
+
+dddf = ddf
+dddf = dddf[dddf.time > Ltime]
+dddf = dddf[dddf.time < Utime]
+
+
+print len(dddf['period'])
+print len(ddf['period'])
+print dddf
+#heatmap, xedges, yedges = np.histogram2d(dddf['time'], dddf['HR'], bins =(150,30), range= [[Ltime, Utime], [0, dddf['HR'].max()]])
+#extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+
+
+#plt.clf()
+#plt.imshow(heatmap.T,extent=extent,aspect = 'auto',interpolation='nearest')
+#plt.colorbar()
+#plt.show()
+NFFT = 64       # the length of the windowing segments
+Fs = 2#len(ddf['HR'])#len(ddf['HR'])  # the sampling frequency       ### THIS IS THE Y AXIS
+
+
+#plt.plot(dates, activity)
+#plt.subplot(212, sharex=ax1)
+ax = plt.subplot(111)
+
+Pxx, freqs, bins, im = plt.specgram(dddf['HR'],
+                                    NFFT=NFFT, pad_to=NFFT, noverlap=63,
+                                    Fs=Fs)#,
+                                #cmap=plt.cm.gist_heat)
+plt.show()
