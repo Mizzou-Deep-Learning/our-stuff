@@ -11,8 +11,8 @@ from scipy import signal
 
 Tk().withdraw()
 filename = 'training_mood.csv'#askopenfilename()
-Utime = 15.5
-Ltime = 15
+Utime = 23
+Ltime = 0
 fields =['period', 'time','HR']
 df = pd.read_csv(filename, usecols=fields)
 #ddf = df.dropna()
@@ -23,29 +23,23 @@ print ddf
 NFFT = 32       # the length of the windowing segments
 Fs = 2#len(ddf['HR'])#len(ddf['HR'])  # the sampling frequency       ### THIS IS THE Y AXIS
 
-
-ddf = ddf[ddf.period == '10/4/2014']
-
-#for
-dddf = ddf
-dddf = dddf[dddf.time > Ltime]
-dddf = dddf[dddf.time < Utime]
-
-
-print len(dddf['period'])
-print len(ddf['period'])
-print dddf
-
-
-ax = plt.subplot(111)
-
-plt.axis('off')
-#ax.axis('tight')
 imgNum = 0
+ddf = ddf[ddf.period == '10/3/2014']
 
-Pxx, freqs, bins, im = plt.specgram(dddf['HR'],
-                                    NFFT=NFFT, pad_to=NFFT, noverlap=31,
-                                    Fs=Fs)#,
-                                #cmap=plt.cm.gist_heat)
-plt.savefig('img/pic' + imgNum + '.png', bbox_inches='tight', pad_inches = 0)
-plt.show()
+step = 1
+for imgNum in np.arange(Ltime, Utime,step):
+    plt.cla()
+    plt.clf()
+    dddf = ddf
+    print imgNum
+    print imgNum + step
+    dddf = dddf[dddf.time > imgNum]
+    dddf = dddf[dddf.time < imgNum + step]
+    print len(dddf['period'])
+    print len(ddf['period'])
+    #print dddf
+    ax = plt.subplot(111)
+    plt.axis('off')
+    Pxx, freqs, bins, im = plt.specgram(dddf['HR'], NFFT=NFFT, pad_to=NFFT, noverlap=31, Fs=Fs)#,
+    plt.savefig('pic' + str(imgNum) + '.png', bbox_inches='tight', pad_inches = 0)
+    #plt.show()
