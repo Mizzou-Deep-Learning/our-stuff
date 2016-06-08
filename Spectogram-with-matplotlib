@@ -11,18 +11,22 @@ from scipy import signal
 
 Tk().withdraw()
 filename = 'training_mood.csv'#askopenfilename()
-Ltime = 13.6
-Utime = 14
+Utime = 15.5
+Ltime = 15
 fields =['period', 'time','HR']
 df = pd.read_csv(filename, usecols=fields)
 #ddf = df.dropna()
 ddf = df
 print ddf
 #plt.show( ddf.plot(kind = 'scatter', x = 'time' , y = 'HR', c = 'c'))
+#ddf = ddf[ddf.time%2 == 0]
+NFFT = 32       # the length of the windowing segments
+Fs = 2#len(ddf['HR'])#len(ddf['HR'])  # the sampling frequency       ### THIS IS THE Y AXIS
+
+
 ddf = ddf[ddf.period == '10/4/2014']
-ddf = ddf.drop_duplicates()
 
-
+#for
 dddf = ddf
 dddf = dddf[dddf.time > Ltime]
 dddf = dddf[dddf.time < Utime]
@@ -31,24 +35,17 @@ dddf = dddf[dddf.time < Utime]
 print len(dddf['period'])
 print len(ddf['period'])
 print dddf
-#heatmap, xedges, yedges = np.histogram2d(dddf['time'], dddf['HR'], bins =(150,30), range= [[Ltime, Utime], [0, dddf['HR'].max()]])
-#extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
 
 
-#plt.clf()
-#plt.imshow(heatmap.T,extent=extent,aspect = 'auto',interpolation='nearest')
-#plt.colorbar()
-#plt.show()
-NFFT = 64       # the length of the windowing segments
-Fs = 2#len(ddf['HR'])#len(ddf['HR'])  # the sampling frequency       ### THIS IS THE Y AXIS
-
-
-#plt.plot(dates, activity)
-#plt.subplot(212, sharex=ax1)
 ax = plt.subplot(111)
 
+plt.axis('off')
+#ax.axis('tight')
+imgNum = 0
+
 Pxx, freqs, bins, im = plt.specgram(dddf['HR'],
-                                    NFFT=NFFT, pad_to=NFFT, noverlap=63,
+                                    NFFT=NFFT, pad_to=NFFT, noverlap=31,
                                     Fs=Fs)#,
                                 #cmap=plt.cm.gist_heat)
+plt.savefig('img/pic' + imgNum + '.png', bbox_inches='tight', pad_inches = 0)
 plt.show()
