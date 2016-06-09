@@ -24,14 +24,16 @@ Fs = 2
 x = 0;
 y= 0.5;
 
-for i in range(48):
+for i in range(1000):
     tempddf = ddf
     tempddf = tempddf[tempddf.time >= x]
     tempddf = tempddf[tempddf.time <= y]
-    Pxx, freqs, bins, im = plt.specgram(tempddf['HR'], NFFT=NFFT, window= np.hamming(50), pad_to=NFFT, noverlap=45, Fs=Fs)
+    Pxx, freqs, bins, im = plt.specgram(tempddf['HR'], NFFT=np.hamming(50), pad_to=NFFT, noverlap=45, Fs=Fs)
     #plt.colorbar()
     plt.savefig('pic'+ str(i) + '.png', bbox_inches='tight', pad_inches = 0)
     #plt.show()
-    x = x + 0.5
-    y = y + 0.5
+    x = x + 0.083
+    y = y + 0.083
+    if y == 24:
+        break
 
