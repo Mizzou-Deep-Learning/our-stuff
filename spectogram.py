@@ -7,7 +7,7 @@ matplotlib.use("tkAgg")
 import matplotlib.pyplot as plt
 import scipy.fftpack
 from scipy import signal
-
+import pycaffe
 
 Tk().withdraw()
 filename = askopenfilename()
@@ -28,12 +28,11 @@ for i in range(1000):
     tempddf = ddf
     tempddf = tempddf[tempddf.time >= x]
     tempddf = tempddf[tempddf.time <= y]
-    Pxx, freqs, bins, im = plt.specgram(tempddf['HR'], NFFT=np.hamming(50), pad_to=NFFT, noverlap=45, Fs=Fs)
-    #plt.colorbar()
+    Pxx, freqs, bins, im = plt.specgram(tempddf['HR'], NFFT=np.hamming(50), pad_to=NFFT, noverlap=120, Fs=Fs)
+    plt.colorbar()
     plt.savefig('pic'+ str(i) + '.png', bbox_inches='tight', pad_inches = 0)
     #plt.show()
     x = x + 0.083
     y = y + 0.083
     if y == 24:
         break
-
