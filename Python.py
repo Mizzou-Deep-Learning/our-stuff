@@ -11,7 +11,7 @@ from scipy import signal
 
 Tk().withdraw()
 filename = askopenfilename()
-df = pd.read_csv(filename, usecols=fields)
+df = pd.read_csv(filename)
 #ddf = df.dropna()
 #print ddf
 #plt.show( ddf.plot(kind = 'scatter', x = 'time' , y = 'HR', c = 'c'))
