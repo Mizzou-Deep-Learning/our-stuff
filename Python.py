@@ -10,32 +10,16 @@ from scipy import signal
 
 
 Tk().withdraw()
-filename = 'training_mood.csv'#askopenfilename()
-Ltime = 15.0
-Utime = 20.0
-fields =['period', 'time','HR']
+filename = askopenfilename()
 df = pd.read_csv(filename, usecols=fields)
-ddf = df.dropna()
-print ddf
+#ddf = df.dropna()
+#print ddf
 #plt.show( ddf.plot(kind = 'scatter', x = 'time' , y = 'HR', c = 'c'))
-ddf = ddf[ddf.period == '10/3/2014']
-ddf = ddf.drop_duplicates()
-
-print Ltime
-print "a"
-
-dddf = ddf
-dddf = dddf[dddf.time > Ltime]
-#dddf = dddf.drop(dddf[dddf.time>Ltime].index)#
-#dddf = dddf.drop(dddf[dddf.time > Ltime].index)
-#dddf = dddf.drop(dddf[dddf.time < Utime].index)
-dddf = dddf[dddf.time < Utime]
+#ddf = ddf[ddf.period == '10/3/2014']
+#ddf = ddf.drop_duplicates()
 
 
-print len(dddf['period'])
-print len(ddf['period'])
-print dddf
-heatmap, xedges, yedges = np.histogram2d(dddf['time'], dddf['HR'], bins =(150,30))
+heatmap, xedges, yedges = np.histogram2d(df['time'], df['HR'], bins =(150,30))
 extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
 
 #print (ddf)
