@@ -8,38 +8,66 @@ import matplotlib.pyplot as plt
 import scipy.fftpack
 from scipy import signal
 
-
+TIMECOL = 1
+DATECOL = 0
+DRINKCOL = 7
+SKIP = [DATECOL, TIMECOL, DRINKCOL, 6,8,9,10,11,12,13,14]
+SELECTEDDATE = '10/3/2014'
 Tk().withdraw()
 filename = 'training_mood.csv'#askopenfilename() # choose file with this function
-Utime = 23 #upper bound for time collection
+Utime = .05 #upper bound for time collection
 Ltime = 0 #Lower bound for time collection
-step = 1 #for iterating through time
-fields =['period', 'time','HR']  #fields to get. TODO: make it iterate throug hlist, rather than simply selecting HR (part of configurability)
-df = pd.read_csv(filename, usecols=fields) #turn excel/csv file into a dataframe (large pandas table)
-#ddf = df.dropna()
+window = .5 #for iterating through time
+jump = .01*(5.0/6.0)
+#fields =['period', 'time','HR']  #fields to get. TODO: make it iterate through list of fields, rather than simply selecting HR (part of configurability)
+df = pd.read_csv(filename)#, usecols=fields) #turn excel/csv file into a dataframe (large pandas table)
+  #ddf = df.dropna()
 ddf = df
-print ddf #for testing
+#print ddf  #for testing
 
-NFFT = 32       # the length of the windowing segments TODO: Figure out what this means/does
-Fs = 2#  # the sampling frequency       ### THIS IS THE Y AXIS
+NFFT = 64      # the length of the windowing segments TODO: Figure out what this means/does
+Fs = 0.2 #  # the sampling frequency       ### THIS IS THE Y AXIS # should be x
 
 imgNum = 0 #iteration var
-ddf = ddf[ddf.period == '10/3/2014'] #selected date. #########TODO: iterate through dates, as well
+
+#for day in ddf.period
+headers = list(ddf.columns.values)
+#print headers
+#print headers[DATECOL]
+#print headers[SKIP[0]]
+#print headers[SKIP[1]]
+ddf = ddf[ddf[headers[DATECOL]] == SELECTEDDATE]  #selected date. #########TODO: iterate through dates, as well
+namingVar = 0 #used for naming image fil
 
 
-for imgNum in np.arange(Ltime, Utime,step): #for each image from lower bound to upper bound by step size of step
-    plt.cla() #remove axes
-    plt.clf() #clear plot to be empty
-    tempddf = ddf  #temporary dataframe for snapshot in time
-    print imgNum #upper bound for time
-    print imgNum + step  #lower bound for time
-    tempddf = tempddf[tempddf.time > imgNum] #remove lower bound of time
-    tempddf = tempddf[tempddf.time < imgNum + step]  #remove upper bound of time
-    print len(tempddf['period']) #size of removed data
-    print len(ddf['period']) #size of original data set
+for i in headers:
+      #nfft is hamming window, 50
+    namingVar = 0
+    print i
 
-    ax = plt.subplot(111) #length,width,height ratio of 1:1:1
-    plt.axis('off') #remove axes, neccesary because for convolutions, better to have less white background
-    Pxx, freqs, bins, im = plt.specgram(tempddf['HR'], NFFT=NFFT, pad_to=NFFT, noverlap=31, Fs=Fs) #generate spectrogram
-    plt.savefig('pic' + str(imgNum) + '.png', bbox_inches='tight', pad_inches = 0) #save plot
-    #plt.show() # used for displaying the plot
+    if ddf.columns.get_loc(i) not in SKIP:
+        print i + "is not in skip"
+
+        for imgNum in np.arange(Ltime, Utime,jump):  #for each image from lower bound to upper bound by step size of step
+            plt.cla()  #remove axes
+            plt.clf()  #clear plot to be empty
+            tempddf = ddf  #temporary dataframe for snapshot in time
+            print imgNum  #upper bound for time
+            print imgNum + window  #lower bound for time
+            tempddf = tempddf[tempddf[headers[TIMECOL]] > imgNum]  #remove lower bound of time
+            tempddf = tempddf[tempddf[headers[TIMECOL]] < imgNum + window]  #remove upper bound of time
+            print "LEN OF tempddf: " + str(len(tempddf['period']))  #size of removed data
+            #print "LEN OF ddf: " + str(len(ddf['period'])) #size of original data set
+            #print tempddf[tempddf.time[2]]
+            if len(tempddf) >= 0:
+
+
+                ax = plt.subplot(111) #length,width,height ratio of 1:1:1
+                #plt.axvline(1, linewidth=3, color='#ff00ff')
+                #plt.axis('off') #remove axes, neccesary because for convolutions, better to have less white background
+                Pxx, freqs, bins, im = plt.specgram((tempddf[i]), NFFT=NFFT, noverlap=63, Fs=Fs) #generate spectrogram
+                plt.savefig(str(i) + str(namingVar) + '.png', bbox_inches='tight', pad_inches = 0) #save plot
+                #plt.show() # used for displaying the plot
+                #plt.colorbar(ax).set_label('Intensity [dB]')
+                plt.colorbar()
+                namingVar = namingVar + 1
