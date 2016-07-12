@@ -35,7 +35,11 @@ SKIP = [DATECOL, TIMECOL, DRINKCOL, 6,8,9,10,11,12,13,14] #used for determining 
 
 
 filename = 'training_mood.csv' #TODO list of csv's instead of single
+train = []
+val = []
+test = []
 
+process = [True, True, False] #generate train, generate val, do not generate test.
 df = pd.read_csv(filename) #turn excel/csv file into a dataframe (large pandas table)
 headers = list(df.columns.values) #list of headers
 
@@ -195,7 +199,7 @@ for j in headers:
     if tempdf.columns.get_loc(j) not in SKIP:
         #make_sure_path_exists(str(j) + "/train.txt")
 
-        #make_sure_path_exists(str(j) + "/test.txt")
+        #make_sure_path_exists(str(j) + "/val.txt")
 
 
         import os
@@ -206,7 +210,7 @@ for j in headers:
         abs_file_path = os.path.join(script_dir, rel_path)
         drinktrainfile = open(abs_file_path, "w")
 
-        rel_path = "Spectrograms/" + str(j) + "/test.txt"
+        rel_path = "Spectrograms/" + str(j) + "/val.txt"
         abs_file_path = os.path.join(script_dir, rel_path)
 
         drinktestfile = open(abs_file_path, "w")
