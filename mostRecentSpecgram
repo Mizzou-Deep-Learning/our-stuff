@@ -1,0 +1,180 @@
+#from Tkinter import Tk
+import pandas as pd
+import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
+#matplotlib.use("tkAgg")
+import matplotlib.pyplot as plt
+import math
+import random
+import os
+#matplotlib.use('Agg')
+#Tk().withdraw()
+
+# path: the path/destination folder to check if it exists. If it does not exist, create it.
+def make_sure_path_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError:
+        if not os.path.isdir(path):
+            raise
+##########Used for time window of spectrogram###################
+HOUR = 1.0
+MINUTE = HOUR/60.0
+SECOND = MINUTE/60.0
+################################################################
+
+
+##########Vars to allow for computer to see which columns have certain info##### EXCEL COLUMNS ARE 0 BASED##########
+TIMECOL = 1 #The column that has the time of day (0-23)
+DATECOL = 0 #The column that has the date
+DRINKCOL = 7 #The column that has the drink data (0 or 1, 1 being positive for drinking)
+SKIP = [DATECOL, TIMECOL, DRINKCOL, 3, 4, 5, 6,8,9,10,11,12,13,14] #used for determining unused columns (such as moods)
+################################################################
+
+
+spectrogramMade = 0
+
+filename = 'training_mood.csv' #TODO list of csv's instead of single
+train = ['training1004.csv', 'training1005.csv', 'training1007.csv', 'training1008.csv', 'training1019.csv','training1020.csv']
+val = ['validation1004.csv','validation1005.csv','validation1007.csv','validation1008.csv','validation1019.csv','validation1020.csv']
+test = ['test1004.csv','test1005.csv','test1007.csv','test1008.csv','test1019.csv','test1020.csv']
+#val = []
+#test = []
+process = [True, True, False] #generate train, generate val, do not generate test.
+
+dataset = val + test + train
+namingVar = 0  # used for naming image files
+numDatapoints = 0  # number of datapoints in spectrogram
+#sum = 0
+#for i in dataset:
+#    sum = sum + len(pd.read_csv("sample first/" + i))
+#print "sum is: ---------------------------------------------"
+#print sum
+
+
+#################Spectrogram vars###############
+NFFT = 50  # Window (see Matlab's spectrogram)
+Fs = 0.2  # frequency sampling, determines axes
+NOVERLAP = 49  # NFFT - 1
+PAD_TO = 256  # max(int(pow(2,math.log(1500, 2))), 256)
+################################################################
+
+df = pd.read_csv("resample first/" + train[0] ) #turn excel/csv file into a dataframe (large pandas table)
+headers = list(df.columns.values) #list of headers
+#numSpecgrams = 0
+for j in headers:
+
+    if(df.columns.get_loc(j) not in SKIP):
+        print j
+        numSpecgrams = 0
+        spectrogramMade = 0
+        for i in dataset:
+            print i
+            df = pd.read_csv("resample first/" + i)
+            dfDrinkPts = df[df[headers[DRINKCOL]] == 1] #dataframe of all the instances of drinking
+            for row in xrange(len(dfDrinkPts) -1, -1, -1):
+                tempdf = df[df[headers[DATECOL]] == dfDrinkPts.iloc[row][DATECOL]]
+             # print tempdf
+                tempdf = tempdf[tempdf[headers[TIMECOL]] <= (dfDrinkPts.iloc[row][TIMECOL] + 15 * MINUTE)]
+                tempdf = tempdf[tempdf[headers[TIMECOL]] >= (dfDrinkPts.iloc[row][TIMECOL] - 15 * MINUTE)]
+                #print tempdf
+                PAD_TO = int(pow(2, math.log(len(tempdf[j]), 2))) #calculate the Pad_to for NFFT
+
+                if(numDatapoints < len(tempdf[j])):  # set numDatapoints, used later in finding non-drink spectrograms
+                    numDatapoints = len(tempdf[j])
+                print numDatapoints
+                filename = ("Spectrograms/" + str(j)) + "/drink/" + str(spectrogramMade)    #cmap=plt.cm.binary,
+                plt.plot(tempdf["time"], tempdf[j])
+                make_sure_path_exists("Spectrograms/" + str(j) + "/drink")
+
+                plt.savefig(filename + "GRAPH.jpg")
+                plt.cla()
+                Pxx, freqs, bins, im = plt.specgram(tempdf[j], NFFT=NFFT, Fs=Fs, noverlap=NOVERLAP, pad_to=PAD_TO)
+                plt.savefig(filename + ".jpg")
+                tempdf.to_csv(filename + ".txt", sep='\t')
+                plt.cla()
+                spectrogramMade = spectrogramMade + 1
+                index = dfDrinkPts[dfDrinkPts[headers[TIMECOL]] == dfDrinkPts.iloc[row][TIMECOL]].index
+                index = index[0]
+
+                df = df.drop(df.index[[range(int(index) - (numDatapoints - 1) / 2, int(index) + (numDatapoints - 1) / 2)]])
+
+
+            random.seed()
+
+            while spectrogramMade != numSpecgrams:
+            #time = random.randrange(0, 23999)
+            #time = float(time)
+            #         #time = time/100.0
+            #         #print time
+            #         #print [(df.columns.values[DATECOL])]
+                randDate = df.drop_duplicates(subset=[df.columns.values[DATECOL]])
+                randomRow = randDate.sample(n=1)
+                randomDate = randomRow.iloc[0, 0]
+                time = df.sample(n=1).iloc[0, 1]
+            # #        while True:
+            #          #    print randomDate
+            #         #print randomDate
+            #         #while True:
+            #         #    print randomDate
+            #         #print randomDate
+                NoDrinkDf = df[df[headers[DATECOL]] == randomDate]
+            #         #print NoDrinkDf
+            #         #print str(NoDrinkDf[headers[TIMECOL]])
+            #         #print  str(time + 30*MINUTE) + "TIME"
+                NoDrinkDf = NoDrinkDf[NoDrinkDf[headers[TIMECOL]] <= (time + 15*MINUTE)]
+                NoDrinkDf = NoDrinkDf[NoDrinkDf[headers[TIMECOL]] >= (time - 15*MINUTE)]
+            #         #print NoDrinkDf
+                testfordrinkDF = NoDrinkDf[NoDrinkDf[headers[DRINKCOL]] == 1]
+            #         print "LEN:SHOULDLEN "
+                NoDrinkDf = NoDrinkDf[np.isfinite(NoDrinkDf[j])]
+
+            #         print str(len(NoDrinkDf)) + ":" + str(numDatapoints)
+                if len(testfordrinkDF) == 0 and len(NoDrinkDf) >= numDatapoints-1:
+                    PAD_TO = int(pow(2, math.log(len(NoDrinkDf[j]), 2)))  # calculate the Pad_to for NFFT
+                    Pxx, freqs, bins, im = plt.specgram((NoDrinkDf[j]), NFFT=NFFT, pad_to=PAD_TO, noverlap=NOVERLAP, Fs=Fs)  # generate spectrogram
+                    filename = "Spectrograms/" + str(j) + "/no-drink/" + str(numSpecgrams)
+
+                    make_sure_path_exists("Spectrograms/" + str(j) + "/no-drink/")
+                    plt.savefig(filename + ".jpg")
+                    plt.cla()
+                    plt.plot(NoDrinkDf["time"],NoDrinkDf[j])
+                    plt.savefig(filename + "GRAPH.jpg")
+                    plt.cla()
+                    NoDrinkDf.to_csv(filename + ".txt", sep='\t')
+                    numSpecgrams = numSpecgrams + 1
+
+
+
+
+test = spectrogramMade / 5
+train = spectrogramMade - test
+                    # print str(test) + " - " + str(train) + " is test - train"
+
+for j in headers:
+    if tempdf.columns.get_loc(j) not in SKIP:
+        import os
+        script_path = os.path.abspath(__file__)  # i.e. /path/to/dir/foobar.py
+        script_dir = os.path.split(script_path)[0]  # i.e. /path/to/dir/
+        rel_path = "Spectrograms/" + str(j) + "/train.txt"
+        abs_file_path = os.path.join(script_dir, rel_path)
+        drinktrainfile = open(abs_file_path, "w")
+        rel_path = "Spectrograms/" + str(j) + "/val.txt"
+        abs_file_path = os.path.join(script_dir, rel_path)
+
+        drinktestfile = open(abs_file_path, "w")
+
+        for i in range(0, test + train):
+             if i >= test:
+                 drinktrainfile.write("Spectrograms/" + str(j) + "/drink/" + str(i) + ".jpg 1\n")
+                 drinktrainfile.write("Spectrograms/" + str(j) + "/no-drink/" + str(i) + ".jpg 0\n" )
+
+             else:
+                 drinktestfile.write("Spectrograms/" + str(j) + "/drink/" + str(i) + ".jpg 1\n")
+                 drinktestfile.write("Spectrograms/" + str(j) + "/no-drink/" + str(i) + ".jpg 0\n")
+        drinktrainfile.close()
+        drinktestfile.close()
+print "Entering Deep Learning"
+execfile('joe.py')
